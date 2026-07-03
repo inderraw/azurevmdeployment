@@ -1,0 +1,51 @@
+name: 'Terraform Azure Deployment'
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: 'Terraform CI/CD'
+    runs-on: ubuntu-latest
+    
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      TF_WORKING_DIR: './terraform'
+
+    steps:
+    # 1. Check out the repository code
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # 2. Install the specified version of Terraform CLI
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.0
+
+    # 3. Initialize working directory and backend state
+    - name: Terraform Init
+      run: terraform init
+      working-directory: ${{ env.TF_WORKING_DIR }}
+
+    # 4. Generate and display an execution plan
+    - name: Terraform Plan
+      run: terraform plan
+      working-directory: ${{ env.TF_WORKING_DIR }}
+
+    # 5. Apply changes automatically ONLY when merging to the main branch
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve
+      working-directory: ${{ env.TF_WORKING_DIR }}
