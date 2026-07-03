@@ -3,7 +3,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> v3.117.1"
+      version = "~> 3.117.1"
     }
   }
   # Recommended: Store your state file in an Azure Blob Storage container
