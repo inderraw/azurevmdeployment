@@ -33,7 +33,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   name                = "vm-demo-linux"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  size                = "Standard_B1s"
+  size                = "Standard_D2ls_v5"
   admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.nic.id,
