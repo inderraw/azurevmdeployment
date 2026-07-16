@@ -1,48 +1,18 @@
-name: 'Terraform destroy'
+name: Delete Azure VM
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
-permissions:
-  contents: read
+  workflow_dispatch:
 
 jobs:
-  terraform:
-    name: 'Terraform CI/CD'
+  delete-vm:
     runs-on: ubuntu-latest
-    
-    env:
-      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
     steps:
-    # 1. Check out the repository code
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Login to Azure
+        uses: actions/checkout@v4
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    # 2. Install the specified version of Terraform CLI
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.9.0
-
-    # 3. Initialize working directory and backend state
-    - name: Terraform Init
-      run: terraform init
-      working-directory: ./terraform
-  
-    # 5. Apply destroy ONLY when merging to the main branch
-   - name: Delete VM and Resources
-      uses: actions/checkout@v4
-      with:
-        inlineScript: |
-          az vm delete --resource-group rg-github-actions-demo --name vm-demo-linux --yes
-          az network nic delete --resource-group rg-github-actions-demo --name nic-demo
-          az disk delete --resource-group rg-github-actions-demo --name vm-demo-linux_disk1_91f5b62140f246fb8d9466d3222af9ea --yes
+      - name: Force Delete Azure VM
+        run: |
+           az vm delete --resource-group rg-github-actions-demo --name vm-demo-linux --force-deletion true --yes
