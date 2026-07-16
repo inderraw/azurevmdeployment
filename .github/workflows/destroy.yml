@@ -1,21 +1,26 @@
-name: Delete Azure VM
+name: Delete Azure Resource Group
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Allows you to trigger the deletion manually
+    inputs:
+      resource_group_name: 'rg-github-actions-demo'
+        description: 'Name of the Resource Group to delete'
+        required: true
+        type: string
 
 jobs:
-  delete-vm:
+  delete-rg:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Login to Azure
-        uses: azure/login@v3
+      # Step 1: Authenticate to Azure
+      - name: Azure Login
+        uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - name: Azure CLI script
-      uses: azure/cli@v2
-      with:
-        azcliversion: latest
-      - name: Force Delete Azure VM
-        run: |
-           az vm delete --resource-group rg-github-actions-demo --name vm-demo-linux --force-deletion true --yes
+          creds: ${{ secrets::AZURE_CREDENTIALS }}
+
+      # Step 2: Delete the Resource Group
+      - name: Delete Azure Resource Group
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az group delete --name ${{ github.event.inputs.resource_group_name }} --yes --no-wait
