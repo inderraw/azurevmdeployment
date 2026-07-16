@@ -6,7 +6,7 @@ on:
 jobs:
   delete-vm:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Login to Azure
         uses: actions/checkout@v4
