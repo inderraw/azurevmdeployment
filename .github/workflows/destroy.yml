@@ -1,21 +1,43 @@
-name: Delete Azure VM
+name: 'Terraform Destroy Azure VM'
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Allows manual triggering from the GitHub Actions UI
+
+permissions:
+  contents: read
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  TF_LOG: INFO # Optional: provides clean logs during the process
 
 jobs:
-  delete-vm:
+  terraform-destroy:
+    name: 'Terraform Destroy'
     runs-on: ubuntu-latest
-    
+
+    # Optional: set default directory if your TF files are in a subdirectory
+    # defaults:
+    #   run:
+    #     working-directory: ./terraform
+
     steps:
-      - name: Login to Azure
-        uses: azure/login@v3
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - name: Azure CLI script
-      uses: azure/cli@v2
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
       with:
-        azcliversion: latest
-      - name: Force Delete Azure VM
-        run: |
-           az vm delete --resource-group rg-github-actions-demo --name vm-demo-linux --force-deletion true --yes
+        terraform_version: "1.9.0" # Specify your exact required version
+
+    - name: Terraform Init
+      run: terraform init
+
+    # Optional but highly recommended: View what will be destroyed first
+    - name: Terraform Plan Destroy
+      run: terraform plan -destroy
+
+    - name: Terraform Destroy
+      run: terraform destroy -auto-approve
